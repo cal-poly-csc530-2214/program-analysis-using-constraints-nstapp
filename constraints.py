@@ -67,8 +67,10 @@ def generate_constraints(program: str) -> str:
 
 
 def solve_with_z3(constraints: list[str]):
-    x, y, a1, a2, a3, a4, a5, a6 = Ints("x y a1 a2 a3 a4 a5 a6")
+    # This is all without using Farkas' lemma
     s = Solver()
+
+    x, y, a1, a2, a3, a4, a5, a6 = Ints("x y a1 a2 a3 a4 a5 a6")
     s.add(Implies(True, Or(-50 * a1 + a2 * y + a3 >= 0, -50 * a1 + a5 * y + a6 >= 0)))
     s.add(
         Implies(
@@ -85,12 +87,39 @@ def solve_with_z3(constraints: list[str]):
             y > 0,
         )
     )
+
+    # This is using Farkas' lemma, poorly though
+    # a1, a2, a3, a4, a5, a6, l1, l2, l3, l4, la, lb = Ints(
+    #     "a1 a2 a3 a4 a5 a6 l1 l2 l3 l4 la lb"
+    # )
+    # s.add(
+    #     Implies(
+    #         True,
+    #         And(
+    #             (50 * a1 * l1) - (a3 * l1) - l1 + (50 * a4 * l2) - (a6 * l2) - l2
+    #             == -la,
+    #             (a2 * l1) + (a5 * l2) == 0,
+    #             And(l1 >= 0, l2 >= 0, la > 0),
+    #         ),
+    #     )
+    # )
+    # # s.add((a2 * l1) + (a5 * l2) == 0)
+    # # s.add(And(l1 >= 0, l2 >= 0, la > 0))
+    # s.add(
+    #     (2 * l3 * a1)
+    #     - (a3 * l3)
+    #     - l3
+    #     - (a2 * l3)
+    #     + (2 * l4 * a4)
+    #     - (a6 * l4)
+    #     - l4
+    #     - (a5 * l4)
+    #     == -lb
+    # )
+    # s.add((a2 * l3) + (a5 * l4) == 0)
+    # s.add(And(l3 >= 0, l4 >= 0, lb > 0))
     s.check()
     print(s.model())
-
-    # while s.check() == sat:
-    #     print(s.model())
-    #     s.add(Or(x != s.model()[x], y != s.model()[y], a1 != s.model()[a1], a2 != s.model()[a2], a3 != s.model()[a3], a4 != s.model()[a4], a5 != s.model()[a5], a6 != s.model()[a6]))
 
 
 def main():
